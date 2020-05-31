@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Title>CacheInterceptorsNetCore</Title>
+        <Description>Caching interceptors on .netcore3.1 using Castle Windsor DI DynamicProxying, via Cache Attribute</Description>
+        <PackageProjectUrl>https://github.com/oguzhankahyaoglu/CacheInterceptorsNetCore</PackageProjectUrl>
+        <RepositoryUrl>https://github.com/oguzhankahyaoglu/CacheInterceptorsNetCore</RepositoryUrl>
+        <PackageTags>.netcore cache interceptor castle</PackageTags>
+        <PackageVersion>1.0.5</PackageVersion>
+    </PropertyGroup>
+    <ItemGroup>
+        <PackageReference Include="Castle.Core" Version="4.4.0" />
+        <PackageReference Include="Castle.Core.AsyncInterceptor" Version="1.7.0" />
+        <PackageReference Include="Castle.Windsor.MsDependencyInjection" Version="3.3.1" />
+        <PackageReference Include="LazyCache.AspNetCore" Version="2.0.4" />
+        <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.4" />
+    </ItemGroup>
+</Project>
