@@ -1,6 +1,6 @@
 ﻿using Castle.DynamicProxy;
 
-namespace CacheInterceptorsNetCore.Interceptors
+namespace CachedAttributes.Interceptors
 {
     public class AbpAsyncDeterminationInterceptor<TInterceptor> : AsyncDeterminationInterceptor
         where TInterceptor : IAsyncInterceptor

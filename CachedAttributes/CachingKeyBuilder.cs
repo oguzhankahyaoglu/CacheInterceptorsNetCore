@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
-namespace CacheInterceptorsNetCore
+namespace CachedAttributes
 {
     public interface ICachingKeyBuilder
     {

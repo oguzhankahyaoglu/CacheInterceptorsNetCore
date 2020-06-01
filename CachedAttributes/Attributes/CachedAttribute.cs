@@ -1,19 +1,19 @@
 ﻿using System;
 
-namespace CacheInterceptorsNetCore.Attributes
+namespace CachedAttributes.Attributes
 {
     [AttributeUsage(AttributeTargets.Method)]
-    public class CacheAttribute : Attribute
+    public class CachedAttribute : Attribute
     {
         private readonly CacheDuration _duration;
         private readonly TimeSpan? _expires;
 
-        public CacheAttribute(CacheDuration duration = CacheDuration.Short)
+        public CachedAttribute(CacheDuration duration = CacheDuration.Short)
         {
             _duration = duration;
         }
 
-        public CacheAttribute(TimeSpan expires)
+        public CachedAttribute(TimeSpan expires)
         {
             _expires = expires;
         }

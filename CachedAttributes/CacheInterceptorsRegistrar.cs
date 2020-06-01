@@ -2,14 +2,14 @@
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using CacheInterceptorsNetCore.Attributes;
-using CacheInterceptorsNetCore.Interceptors;
+using CachedAttributes.Attributes;
+using CachedAttributes.Interceptors;
 using Castle.Core;
 using Castle.MicroKernel;
 using Castle.MicroKernel.Registration;
 using Castle.Windsor;
 
-namespace CacheInterceptorsNetCore
+namespace CachedAttributes
 {
     public static class CacheInterceptorsRegistrar
     {
@@ -44,14 +44,14 @@ namespace CacheInterceptorsNetCore
                 return;
             }
 
-            if (ShouldIntercept<CachePerRequestAttribute>(implementation))
+            if (ShouldIntercept<CachedPerRequestAttribute>(implementation))
             {
                 Debug.WriteLine("[Intercepting CachePerRequest] " + implementation.Name);
                 handler.ComponentModel.Interceptors
                     .Add(new InterceptorReference(typeof(AbpAsyncDeterminationInterceptor<CachePerRequestInterceptor>)));
             }
 
-            if (ShouldIntercept<CacheAttribute>(implementation))
+            if (ShouldIntercept<CachedAttribute>(implementation))
             {
                 Debug.WriteLine("[Intercepting Cache] " + implementation.Name);
                 handler.ComponentModel.Interceptors

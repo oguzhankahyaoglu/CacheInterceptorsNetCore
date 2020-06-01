@@ -2,27 +2,28 @@
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
-using CacheInterceptorsNetCore.Attributes;
+using CachedAttributes.Attributes;
 using Castle.DynamicProxy;
 using LazyCache;
 
-namespace CacheInterceptorsNetCore.Interceptors
+namespace CachedAttributes.Interceptors
 {
-    public class CacheInterceptor : InterceptorBase
+    public class CachePerRequestInterceptor : InterceptorBase
     {
         private readonly IAppCache _cacheProvider;
         private readonly ICachingKeyBuilder _cachingKeyBuilder;
 
-        public CacheInterceptor(IAppCache cacheProvider, ICachingKeyBuilder cachingKeyBuilder)
+        private static readonly TimeSpan DefaultExpire = TimeSpan.FromMinutes(10);
+
+        public CachePerRequestInterceptor(IAppCache cacheProvider, ICachingKeyBuilder cachingKeyBuilder)
         {
             _cacheProvider = cacheProvider;
             _cachingKeyBuilder = cachingKeyBuilder;
         }
 
-
-        private static CacheAttribute FindAttribute(IInvocation invocation)
+        private static CachedPerRequestAttribute FindAttribute(IInvocation invocation)
         {
-            var cacheAttribute = invocation.Method.GetCustomAttribute<CacheAttribute>();
+            var cacheAttribute = invocation.Method.GetCustomAttribute<CachedPerRequestAttribute>();
             return cacheAttribute;
         }
 
@@ -37,7 +38,7 @@ namespace CacheInterceptorsNetCore.Interceptors
             }
 
             //eğer o metot cache işlemlerinin yapılması gereken bir metot ise ilk olarak dynamic olarak aşağıdaki gibi bir cacheKey oluşturuyoruz
-            var cacheKey = _cachingKeyBuilder.BuildCacheKey(invocation);
+            var cacheKey = _cachingKeyBuilder.BuildCacheKeyFromRequest(invocation);
             DebugLog($"{cacheKey}\nStarted intercepting SYNC: ");
             var result = _cacheProvider.GetOrAdd(cacheKey, () =>
             {
@@ -45,7 +46,7 @@ namespace CacheInterceptorsNetCore.Interceptors
                 invocation.Proceed();
                 DebugLog($"{cacheKey}\nFetched data to cache SYNC");
                 return invocation.ReturnValue;
-            }, cacheAttribute.GetExpires());
+            }, DefaultExpire);
             DebugLog($"{cacheKey}\nReturning cached data SYNC");
             invocation.ReturnValue = result;
         }
@@ -80,7 +81,7 @@ namespace CacheInterceptorsNetCore.Interceptors
 
             {
                 //eğer o metot cache işlemlerinin yapılması gereken bir metot ise ilk olarak dynamic olarak aşağıdaki gibi bir cacheKey oluşturuyoruz
-                var cacheKey = _cachingKeyBuilder.BuildCacheKey(invocation);
+                var cacheKey = _cachingKeyBuilder.BuildCacheKeyFromRequest(invocation);
                 DebugLog($"{cacheKey}\nStarted intercepting ASYNC: ");
                 var result = await _cacheProvider.GetOrAddAsync(cacheKey, async () =>
                 {
@@ -90,7 +91,7 @@ namespace CacheInterceptorsNetCore.Interceptors
                     var methodResult = await taskResult.ConfigureAwait(false);
                     DebugLog($"{cacheKey}\nFetched data to cache ASYNC");
                     return methodResult;
-                }, cacheAttribute.GetExpires());
+                }, DefaultExpire);
                 DebugLog($"{cacheKey}\nReturning cached data ASYNC");
                 return result;
             }
@@ -98,7 +99,7 @@ namespace CacheInterceptorsNetCore.Interceptors
 
         private void DebugLog(string message)
         {
-            Debug.WriteLine("[CacheInterceptor] " + message);
+            Debug.WriteLine("[CachePerRequestInterceptor] " + message);
         }
     }
 }

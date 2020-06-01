@@ -4,7 +4,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Castle.DynamicProxy;
 
-namespace CacheInterceptorsNetCore.Interceptors
+namespace CachedAttributes.Interceptors
 {
     public abstract class InterceptorBase : IAsyncInterceptor
     {

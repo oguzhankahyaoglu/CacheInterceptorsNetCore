@@ -2,12 +2,14 @@
     <PropertyGroup>
         <TargetFramework>netcoreapp3.1</TargetFramework>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-        <Title>CacheInterceptorsNetCore</Title>
-        <Description>Caching interceptors on .netcore3.1 using Castle Windsor DI DynamicProxying, via Cache Attribute</Description>
+        <Title>Cached Attributes</Title>
+        <PackageId>Cached-Attributes-NetCore</PackageId>
+        <Authors>oguzhankahyaoglu</Authors>
+        <Description>Caching Attributes; method caching with interceptors on .netcore3.1 using Castle Windsor DI DynamicProxying, via Cache Attribute</Description>
         <PackageProjectUrl>https://github.com/oguzhankahyaoglu/CacheInterceptorsNetCore</PackageProjectUrl>
         <RepositoryUrl>https://github.com/oguzhankahyaoglu/CacheInterceptorsNetCore</RepositoryUrl>
-        <PackageTags>.netcore cache interceptor castle</PackageTags>
-        <PackageVersion>1.0.5</PackageVersion>
+        <PackageTags>.netcore cached attributes interceptor castle</PackageTags>
+        <PackageVersion>1.0.0</PackageVersion>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Castle.Core" Version="4.4.0" />
