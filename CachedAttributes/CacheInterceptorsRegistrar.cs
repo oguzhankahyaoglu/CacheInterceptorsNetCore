@@ -44,14 +44,14 @@ namespace CachedAttributes
                 return;
             }
 
-            if (ShouldIntercept<CachedPerRequestAttribute>(implementation))
+            if (ShouldIntercept<CachedPerRequestAttribute>(handler.ComponentModel))
             {
                 Debug.WriteLine("[Intercepting CachePerRequest] " + implementation.Name);
                 handler.ComponentModel.Interceptors
-                    .Add(new InterceptorReference(typeof(AbpAsyncDeterminationInterceptor<CachePerRequestInterceptor>)));
+                    .Add(new InterceptorReference("(AbpAsyncDeterminationInterceptor<CachePerRequestInterceptor>)));
             }
 
-            if (ShouldIntercept<CachedAttribute>(implementation))
+            if (ShouldIntercept<CachedAttribute>(handler.ComponentModel))
             {
                 Debug.WriteLine("[Intercepting Cache] " + implementation.Name);
                 handler.ComponentModel.Interceptors
@@ -60,18 +60,24 @@ namespace CachedAttributes
         }
 
 
-        internal static bool ShouldIntercept<TAttribute>(Type type)
+        internal static bool ShouldIntercept<TAttribute>(ComponentModel component)
         {
-            if (type.GetTypeInfo().IsDefined(typeof(TAttribute), true))
+            var type = component.Implementation;
+            var attributeType = typeof(TAttribute);
+            if (type.GetTypeInfo().IsDefined(attributeType, true))
             {
                 return true;
             }
 
-            if (type.GetMethods().Any(m => m.IsDefined(typeof(TAttribute), true)))
+            if (type.GetMethods().Any(m => m.IsDefined(attributeType, true)))
             {
                 return true;
             }
 
+            var anyServiceRegisteredWithAttribute = component.Services
+                .Any(service => service.GetMethods().Any(m => m.IsDefined(attributeType, true)));
+            if (anyServiceRegisteredWithAttribute)
+                return true;
             return false;
         }
     }
