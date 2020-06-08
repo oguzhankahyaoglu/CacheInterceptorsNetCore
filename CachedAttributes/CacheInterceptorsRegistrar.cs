@@ -48,7 +48,7 @@ namespace CachedAttributes
             {
                 Debug.WriteLine("[Intercepting CachePerRequest] " + implementation.Name);
                 handler.ComponentModel.Interceptors
-                    .Add(new InterceptorReference("(AbpAsyncDeterminationInterceptor<CachePerRequestInterceptor>)));
+                    .Add(new InterceptorReference(typeof(AbpAsyncDeterminationInterceptor<CachePerRequestInterceptor>)));
             }
 
             if (ShouldIntercept<CachedAttribute>(handler.ComponentModel))
