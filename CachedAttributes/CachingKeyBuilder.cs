@@ -29,15 +29,16 @@ namespace CachedAttributes
             string CacheKeyFromRequest()
             {
                 var key = DateTime.Now.AddMinutes(1).ToString("dd/MM/yyyy HH:mm");
-                if (_httpContextAccessor == null)
+                var httpContext = _httpContextAccessor?.HttpContext;
+                if (httpContext == null)
                 {
                     //1dk içinde isteğin cevap döneceğini tahmin ediyoruz eğer web request yoksa
                     _logger.LogError($"NO HTTP CONTEXT AVAILABLE for caching, returning key '{key}'");
                     return key;
                 }
-
-                key = _httpContextAccessor.HttpContext.TraceIdentifier;
-                var requestUrl = _httpContextAccessor.HttpContext.Request.Path.ToString();
+                
+                key = httpContext.TraceIdentifier;
+                var requestUrl = httpContext.Request.Path.ToString();
                 _logger.LogDebug($"CACHEKEY: {key} URL: {requestUrl}");
                 return key;
             }
