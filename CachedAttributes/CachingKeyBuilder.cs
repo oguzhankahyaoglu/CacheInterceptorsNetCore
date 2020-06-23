@@ -16,7 +16,8 @@ namespace CachedAttributes
     {
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<CachingKeyBuilder> _logger;
-
+        public static string LastTraceIdentifier;
+        
         public CachingKeyBuilder(IHttpContextAccessor httpContextAccessor, ILogger<CachingKeyBuilder> logger)
         {
             _httpContextAccessor = httpContextAccessor;
@@ -30,15 +31,15 @@ namespace CachedAttributes
             {
                 var key = DateTime.Now.AddMinutes(1).ToString("dd/MM/yyyy HH:mm");
                 var httpContext = _httpContextAccessor?.HttpContext;
-                if (httpContext == null)
+                if (httpContext == null && LastTraceIdentifier == null)
                 {
                     //1dk içinde isteğin cevap döneceğini tahmin ediyoruz eğer web request yoksa
                     _logger.LogError($"NO HTTP CONTEXT AVAILABLE for caching, returning key '{key}'");
                     return key;
                 }
                 
-                key = httpContext.TraceIdentifier;
-                var requestUrl = httpContext.Request.Path.ToString();
+                key = httpContext?.TraceIdentifier ?? LastTraceIdentifier;
+                var requestUrl = httpContext?.Request.Path.ToString();
                 _logger.LogDebug($"CACHEKEY: {key} URL: {requestUrl}");
                 return key;
             }

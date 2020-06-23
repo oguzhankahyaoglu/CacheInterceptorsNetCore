@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -12,6 +13,8 @@ namespace CachedAttributes.Interceptors
     {
         private readonly IAppCache _cacheProvider;
         private readonly ICachingKeyBuilder _cachingKeyBuilder;
+        
+        public static ConcurrentDictionary<string, CachedPerRequestAttribute> HasAttributeDictionary = new ConcurrentDictionary<string, CachedPerRequestAttribute>();
 
         private static readonly TimeSpan DefaultExpire = TimeSpan.FromMinutes(10);
 
@@ -23,7 +26,13 @@ namespace CachedAttributes.Interceptors
 
         private static CachedPerRequestAttribute FindAttribute(IInvocation invocation)
         {
+            var key = invocation.Method.DeclaringType.FullName + "." + invocation.Method.Name;
+            if (HasAttributeDictionary.TryGetValue(key, out var value))
+            {
+                return value;
+            }
             var cacheAttribute = invocation.Method.GetCustomAttribute<CachedPerRequestAttribute>();
+            HasAttributeDictionary[key] = cacheAttribute;
             return cacheAttribute;
         }
 
