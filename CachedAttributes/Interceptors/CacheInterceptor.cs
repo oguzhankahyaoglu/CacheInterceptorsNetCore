@@ -30,6 +30,7 @@ namespace CachedAttributes.Interceptors
             {
                 return value;
             }
+
             var cacheAttribute = invocation.Method.GetCustomAttribute<CachedAttribute>();
             HasAttributeDictionary[key] = cacheAttribute;
             return cacheAttribute;
@@ -107,7 +108,8 @@ namespace CachedAttributes.Interceptors
 
         private void DebugLog(string message)
         {
-            Debug.WriteLine("[CacheInterceptor] " + message);
+            if (CacheInterceptorsRegistrar.IsLoggingEnabled)
+                Debug.WriteLine("[CacheInterceptor] " + message);
         }
     }
 }

@@ -13,8 +13,9 @@ namespace CachedAttributes.Interceptors
     {
         private readonly IAppCache _cacheProvider;
         private readonly ICachingKeyBuilder _cachingKeyBuilder;
-        
-        public static ConcurrentDictionary<string, CachedPerRequestAttribute> HasAttributeDictionary = new ConcurrentDictionary<string, CachedPerRequestAttribute>();
+
+        public static ConcurrentDictionary<string, CachedPerRequestAttribute> HasAttributeDictionary =
+            new ConcurrentDictionary<string, CachedPerRequestAttribute>();
 
         private static readonly TimeSpan DefaultExpire = TimeSpan.FromMinutes(10);
 
@@ -31,6 +32,7 @@ namespace CachedAttributes.Interceptors
             {
                 return value;
             }
+
             var cacheAttribute = invocation.Method.GetCustomAttribute<CachedPerRequestAttribute>();
             HasAttributeDictionary[key] = cacheAttribute;
             return cacheAttribute;
@@ -108,7 +110,8 @@ namespace CachedAttributes.Interceptors
 
         private void DebugLog(string message)
         {
-            Debug.WriteLine("[CachePerRequestInterceptor] " + message);
+            if (CacheInterceptorsRegistrar.IsLoggingEnabled)
+                Debug.WriteLine("[CachePerRequestInterceptor] " + message);
         }
     }
 }

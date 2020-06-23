@@ -14,15 +14,17 @@ namespace CachedAttributes
     public static class CacheInterceptorsRegistrar
     {
         private static string _projectNamespaceRoot;
+        internal static bool IsLoggingEnabled;
 
         /// <summary>
         /// Register caching interceptors and all required services
         /// </summary>
         /// <param name="container"></param>
         /// <param name="projectNamespaceRoot"></param>
-        public static void RegisterCacheInterceptors(this IWindsorContainer container, string projectNamespaceRoot)
+        public static void RegisterCacheInterceptors(this IWindsorContainer container, string projectNamespaceRoot, bool isLoggingEnabled)
         {
             _projectNamespaceRoot = projectNamespaceRoot;
+            IsLoggingEnabled = isLoggingEnabled;
             container.Register(Component.For<CacheInterceptor>().LifestyleTransient());
             container.Register(Component.For<CachePerRequestInterceptor>().LifestyleTransient());
             container.Register(Component.For<ICachingKeyBuilder>().ImplementedBy<CachingKeyBuilder>().LifestyleTransient());
