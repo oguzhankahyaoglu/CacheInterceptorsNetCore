@@ -56,7 +56,10 @@ namespace CachedAttributes
         public string BuildCacheKey(IInvocation invocation)
         {
             var methodName = invocation.Method.ToString();
-            var arguments = JsonConvert.SerializeObject(invocation.Arguments);
+            var arguments = JsonConvert.SerializeObject(invocation.Arguments, Formatting.None, new JsonSerializerSettings
+            {
+                ReferenceLoopHandling = ReferenceLoopHandling.Ignore
+            });
             var argsString = string.Join(",", arguments);
             var cacheKey = $"{methodName}:\n{argsString}";
             return cacheKey;
