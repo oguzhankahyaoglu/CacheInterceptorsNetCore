@@ -59,6 +59,13 @@ namespace CachedAttributes
                 handler.ComponentModel.Interceptors
                     .Add(new InterceptorReference(typeof(AbpAsyncDeterminationInterceptor<CacheInterceptor>)));
             }
+            
+            if (ShouldIntercept<CachedInvalidateAttribute>(handler.ComponentModel))
+            {
+                Debug.WriteLine("[Intercepting CachedInvalidate] " + implementation.Name);
+                handler.ComponentModel.Interceptors
+                    .Add(new InterceptorReference(typeof(AbpAsyncDeterminationInterceptor<CacheInvalidateInterceptor>)));
+            }
         }
 
 

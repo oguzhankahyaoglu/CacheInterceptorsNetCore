@@ -1,22 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
     <PropertyGroup>
-        <TargetFramework>netcoreapp3.1</TargetFramework>
+        <TargetFramework>net5.0</TargetFramework>
         <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
         <Title>Cached Attributes</Title>
         <PackageId>Cached-Attributes-NetCore</PackageId>
         <Authors>oguzhankahyaoglu</Authors>
-        <Description>Caching Attributes; method caching with interceptors on .netcore3.1 using Castle Windsor DI DynamicProxying, via Cache Attribute</Description>
+        <Description>Caching Attributes; method caching with interceptors on .netcore using Castle Windsor DI DynamicProxying, via Cache Attribute</Description>
         <PackageProjectUrl>https://github.com/oguzhankahyaoglu/CacheInterceptorsNetCore</PackageProjectUrl>
         <RepositoryUrl>https://github.com/oguzhankahyaoglu/CacheInterceptorsNetCore</RepositoryUrl>
         <PackageTags>.netcore cached attributes interceptor castle</PackageTags>
-        <PackageVersion>1.0.6</PackageVersion>
+        <PackageVersion>5.0.0</PackageVersion>
     </PropertyGroup>
     <ItemGroup>
-        <PackageReference Include="Castle.Core" Version="4.4.0" />
+        <PackageReference Include="Castle.Core" Version="4.4.1" />
         <PackageReference Include="Castle.Core.AsyncInterceptor" Version="1.7.0" />
-        <PackageReference Include="Castle.Windsor.MsDependencyInjection" Version="3.3.1" />
-        <PackageReference Include="LazyCache.AspNetCore" Version="2.0.4" />
+        <PackageReference Include="Castle.Windsor.MsDependencyInjection" Version="3.4.0" />
+        <PackageReference Include="LazyCache.AspNetCore" Version="2.1.2" />
         <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
-        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="3.1.4" />
+        <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
     </ItemGroup>
 </Project>

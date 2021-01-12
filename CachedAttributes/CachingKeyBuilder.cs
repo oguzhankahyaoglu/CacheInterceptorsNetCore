@@ -9,7 +9,7 @@ namespace CachedAttributes
     public interface ICachingKeyBuilder
     {
         string BuildCacheKeyFromRequest(IInvocation invocation);
-        string BuildCacheKey(IInvocation invocation);
+        string BuildCacheKey(IInvocation invocation, string methodName);
     }
 
     public class CachingKeyBuilder : ICachingKeyBuilder
@@ -17,7 +17,7 @@ namespace CachedAttributes
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ILogger<CachingKeyBuilder> _logger;
         public static string LastTraceIdentifier;
-        
+
         public CachingKeyBuilder(IHttpContextAccessor httpContextAccessor, ILogger<CachingKeyBuilder> logger)
         {
             _httpContextAccessor = httpContextAccessor;
@@ -37,7 +37,7 @@ namespace CachedAttributes
                     _logger.LogError($"NO HTTP CONTEXT AVAILABLE for caching, returning key '{key}'");
                     return key;
                 }
-                
+
                 key = httpContext?.TraceIdentifier ?? LastTraceIdentifier;
                 var requestUrl = httpContext?.Request.Path.ToString();
                 _logger.LogDebug($"CACHEKEY: {key} URL: {requestUrl}");
@@ -53,9 +53,9 @@ namespace CachedAttributes
             return cacheKey;
         }
 
-        public string BuildCacheKey(IInvocation invocation)
+        public string BuildCacheKey(IInvocation invocation, string methodName)
         {
-            var methodName = invocation.Method.ToString();
+            methodName = methodName ?? invocation.Method.ToString();
             var arguments = JsonConvert.SerializeObject(invocation.Arguments, Formatting.None, new JsonSerializerSettings
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore

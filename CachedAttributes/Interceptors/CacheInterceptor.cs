@@ -14,7 +14,8 @@ namespace CachedAttributes.Interceptors
         private readonly IAppCache _cacheProvider;
         private readonly ICachingKeyBuilder _cachingKeyBuilder;
 
-        public static ConcurrentDictionary<string, CachedAttribute> HasAttributeDictionary = new ConcurrentDictionary<string, CachedAttribute>();
+        private static readonly ConcurrentDictionary<string, CachedAttribute> HasAttributeDictionary =
+            new ConcurrentDictionary<string, CachedAttribute>();
 
         public CacheInterceptor(IAppCache cacheProvider, ICachingKeyBuilder cachingKeyBuilder)
         {
@@ -47,7 +48,7 @@ namespace CachedAttributes.Interceptors
             }
 
             //eğer o metot cache işlemlerinin yapılması gereken bir metot ise ilk olarak dynamic olarak aşağıdaki gibi bir cacheKey oluşturuyoruz
-            var cacheKey = _cachingKeyBuilder.BuildCacheKey(invocation);
+            var cacheKey = _cachingKeyBuilder.BuildCacheKey(invocation, null);
             DebugLog($"{cacheKey}\nStarted intercepting SYNC: ");
             var result = _cacheProvider.GetOrAdd(cacheKey, () =>
             {
@@ -90,7 +91,7 @@ namespace CachedAttributes.Interceptors
 
             {
                 //eğer o metot cache işlemlerinin yapılması gereken bir metot ise ilk olarak dynamic olarak aşağıdaki gibi bir cacheKey oluşturuyoruz
-                var cacheKey = _cachingKeyBuilder.BuildCacheKey(invocation);
+                var cacheKey = _cachingKeyBuilder.BuildCacheKey(invocation, null);
                 DebugLog($"{cacheKey}\nStarted intercepting ASYNC: ");
                 var result = await _cacheProvider.GetOrAddAsync(cacheKey, async () =>
                 {

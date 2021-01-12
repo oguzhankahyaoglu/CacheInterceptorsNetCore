@@ -9,23 +9,22 @@ using LazyCache;
 
 namespace CachedAttributes.Interceptors
 {
-    public class CachePerRequestInterceptor : InterceptorBase
+    public class CacheInvalidateInterceptor : InterceptorBase
     {
         private readonly IAppCache _cacheProvider;
         private readonly ICachingKeyBuilder _cachingKeyBuilder;
 
-        private static readonly ConcurrentDictionary<string, CachedPerRequestAttribute> HasAttributeDictionary =
-            new ConcurrentDictionary<string, CachedPerRequestAttribute>();
+        private static readonly ConcurrentDictionary<string, CachedInvalidateAttribute> HasAttributeDictionary =
+            new ConcurrentDictionary<string, CachedInvalidateAttribute>();
 
-        private static readonly TimeSpan DefaultExpire = TimeSpan.FromMinutes(10);
-
-        public CachePerRequestInterceptor(IAppCache cacheProvider, ICachingKeyBuilder cachingKeyBuilder)
+        public CacheInvalidateInterceptor(IAppCache cacheProvider, ICachingKeyBuilder cachingKeyBuilder)
         {
             _cacheProvider = cacheProvider;
             _cachingKeyBuilder = cachingKeyBuilder;
         }
 
-        private static CachedPerRequestAttribute FindAttribute(IInvocation invocation)
+
+        private static CachedInvalidateAttribute FindAttribute(IInvocation invocation)
         {
             var key = invocation.Method.DeclaringType.FullName + "." + invocation.Method.Name;
             if (HasAttributeDictionary.TryGetValue(key, out var value))
@@ -33,7 +32,7 @@ namespace CachedAttributes.Interceptors
                 return value;
             }
 
-            var cacheAttribute = invocation.Method.GetCustomAttribute<CachedPerRequestAttribute>();
+            var cacheAttribute = invocation.Method.GetCustomAttribute<CachedInvalidateAttribute>();
             HasAttributeDictionary[key] = cacheAttribute;
             return cacheAttribute;
         }
@@ -49,17 +48,11 @@ namespace CachedAttributes.Interceptors
             }
 
             //eğer o metot cache işlemlerinin yapılması gereken bir metot ise ilk olarak dynamic olarak aşağıdaki gibi bir cacheKey oluşturuyoruz
-            var cacheKey = _cachingKeyBuilder.BuildCacheKeyFromRequest(invocation);
-            DebugLog($"{cacheKey}\nStarted intercepting SYNC: ");
-            var result = _cacheProvider.GetOrAdd(cacheKey, () =>
-            {
-                DebugLog($"{cacheKey}\nFetching data to cache SYNC");
-                invocation.Proceed();
-                DebugLog($"{cacheKey}\nFetched data to cache SYNC");
-                return invocation.ReturnValue;
-            }, DefaultExpire);
-            DebugLog($"{cacheKey}\nReturning cached data SYNC");
-            invocation.ReturnValue = result;
+            var cacheKey = _cachingKeyBuilder.BuildCacheKey(invocation, cacheAttribute.InvalidateCacheMethodName);
+            DebugLog($"{cacheKey}\nStarted intercepting CacheInvalidate");
+            _cacheProvider.Remove(cacheKey);
+            invocation.Proceed();
+            DebugLog($"{cacheKey}\nFinished intercepting CacheInvalidate");
         }
 
         protected override async Task InternalInterceptAsynchronous(IInvocation invocation)
@@ -92,26 +85,21 @@ namespace CachedAttributes.Interceptors
 
             {
                 //eğer o metot cache işlemlerinin yapılması gereken bir metot ise ilk olarak dynamic olarak aşağıdaki gibi bir cacheKey oluşturuyoruz
-                var cacheKey = _cachingKeyBuilder.BuildCacheKeyFromRequest(invocation);
-                DebugLog($"{cacheKey}\nStarted intercepting ASYNC: ");
-                var result = await _cacheProvider.GetOrAddAsync(cacheKey, async () =>
-                {
-                    DebugLog($"{cacheKey}\nFetching data to cache ASYNC");
-                    proceedInfo.Invoke();
-                    var taskResult = (Task<TResult>) invocation.ReturnValue;
-                    var methodResult = await taskResult.ConfigureAwait(false);
-                    DebugLog($"{cacheKey}\nFetched data to cache ASYNC");
-                    return methodResult;
-                }, DefaultExpire);
-                DebugLog($"{cacheKey}\nReturning cached data ASYNC");
-                return result;
+                var cacheKey = _cachingKeyBuilder.BuildCacheKey(invocation, cacheAttribute.InvalidateCacheMethodName);
+                DebugLog($"{cacheKey}\nStarted intercepting CacheInvalidate");
+                _cacheProvider.Remove(cacheKey);
+                proceedInfo.Invoke();
+                var taskResult = (Task<TResult>) invocation.ReturnValue;
+                var methodResult = await taskResult.ConfigureAwait(false);
+                DebugLog($"{cacheKey}\nFinished intercepting CacheInvalidate");
+                return methodResult;
             }
         }
 
         private void DebugLog(string message)
         {
             if (CacheInterceptorsRegistrar.IsLoggingEnabled)
-                Debug.WriteLine("[CachePerRequestInterceptor] " + message);
+                Debug.WriteLine("[CacheInterceptor] " + message);
         }
     }
 }

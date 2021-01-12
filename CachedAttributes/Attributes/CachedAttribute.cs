@@ -8,7 +8,7 @@ namespace CachedAttributes.Attributes
         private readonly CacheDuration _duration;
         private readonly TimeSpan? _expires;
 
-        public CachedAttribute(CacheDuration duration = CacheDuration.Short)
+        public CachedAttribute(CacheDuration duration = CacheDuration.Short_10min)
         {
             _duration = duration;
         }
@@ -25,11 +25,11 @@ namespace CachedAttributes.Attributes
             
             switch (_duration)
             {
-                case CacheDuration.Short:
+                case CacheDuration.Short_10min:
                     return TimeSpan.FromMinutes(10);
-                case CacheDuration.Medium:
+                case CacheDuration.Medium_1day:
                     return TimeSpan.FromDays(1);
-                case CacheDuration.Long:
+                case CacheDuration.Long_31days:
                     return TimeSpan.FromDays(31);
                 default:
                     throw new NotImplementedException("bu duration implement edilmedi:" + _duration);
@@ -42,16 +42,16 @@ namespace CachedAttributes.Attributes
         /// <summary>
         /// like 5-10 minutes
         /// </summary>
-        Short,
+        Short_10min,
 
         /// <summary>
         /// 1 day
         /// </summary>
-        Medium,
+        Medium_1day,
 
         /// <summary>
         /// Persistent like 30 days
         /// </summary>
-        Long
+        Long_31days
     }
 }
