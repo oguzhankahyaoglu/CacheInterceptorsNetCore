@@ -26,6 +26,7 @@ namespace CachedAttributes
             _projectNamespaceRoot = projectNamespaceRoot;
             IsLoggingEnabled = isLoggingEnabled;
             container.Register(Component.For<CacheInterceptor>().LifestyleTransient());
+            container.Register(Component.For<CacheInvalidateInterceptor>().LifestyleTransient());
             container.Register(Component.For<CachePerRequestInterceptor>().LifestyleTransient());
             container.Register(Component.For<ICachingKeyBuilder>().ImplementedBy<CachingKeyBuilder>().LifestyleTransient());
             container.Register(Component.For(typeof(AbpAsyncDeterminationInterceptor<>)).LifestyleTransient());
