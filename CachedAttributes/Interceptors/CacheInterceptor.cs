@@ -9,13 +9,10 @@ using LazyCache;
 
 namespace CachedAttributes.Interceptors
 {
-    public class CacheInterceptor : InterceptorBase
+    public class CacheInterceptor : InterceptorBase<CachedAttribute>
     {
         private readonly IAppCache _cacheProvider;
         private readonly ICachingKeyBuilder _cachingKeyBuilder;
-
-        private static readonly ConcurrentDictionary<string, CachedAttribute> HasAttributeDictionary =
-            new ConcurrentDictionary<string, CachedAttribute>();
 
         public CacheInterceptor(IAppCache cacheProvider, ICachingKeyBuilder cachingKeyBuilder)
         {
@@ -23,94 +20,39 @@ namespace CachedAttributes.Interceptors
             _cachingKeyBuilder = cachingKeyBuilder;
         }
 
-
-        private static CachedAttribute FindAttribute(IInvocation invocation)
+        protected override object SyncImpl(IInvocation invocation, CachedAttribute cachedAttribute)
         {
-            var key = invocation.Method.DeclaringType.FullName + "." + invocation.Method.Name;
-            if (HasAttributeDictionary.TryGetValue(key, out var value))
-            {
-                return value;
-            }
-
-            var cacheAttribute = invocation.Method.GetCustomAttribute<CachedAttribute>();
-            HasAttributeDictionary[key] = cacheAttribute;
-            return cacheAttribute;
-        }
-
-        public override void InterceptSynchronous(IInvocation invocation)
-        {
-            //metot için tanımlı cache flag'i var mı kontrolü yapıldığı yer
-            var cacheAttribute = FindAttribute(invocation);
-            if (cacheAttribute == null) //eğer o metot cache işlemi uygulanmayacak bir metot ise process normal sürecinde devam ediyor
-            {
-                invocation.Proceed();
-                return;
-            }
-
             //eğer o metot cache işlemlerinin yapılması gereken bir metot ise ilk olarak dynamic olarak aşağıdaki gibi bir cacheKey oluşturuyoruz
             var cacheKey = _cachingKeyBuilder.BuildCacheKey(invocation, null);
-            DebugLog($"{cacheKey}\nStarted intercepting SYNC: ");
+            CacheInterceptorsRegistrar.Log($"{cacheKey}\nStarted intercepting SYNC: ");
             var result = _cacheProvider.GetOrAdd(cacheKey, () =>
             {
-                DebugLog($"{cacheKey}\nFetching data to cache SYNC");
+                CacheInterceptorsRegistrar.Log($"{cacheKey}\nFetching data to cache SYNC");
                 invocation.Proceed();
-                DebugLog($"{cacheKey}\nFetched data to cache SYNC");
+                CacheInterceptorsRegistrar.Log($"{cacheKey}\nFetched data to cache SYNC");
                 return invocation.ReturnValue;
-            }, cacheAttribute.GetExpires());
-            DebugLog($"{cacheKey}\nReturning cached data SYNC");
-            invocation.ReturnValue = result;
+            }, cachedAttribute.GetExpires());
+            CacheInterceptorsRegistrar.Log($"{cacheKey}\nReturning cached data SYNC");
+            return result;
         }
-
-        protected override async Task InternalInterceptAsynchronous(IInvocation invocation)
+        
+        protected override Task<TResult> AsyncImpl<TResult>(IInvocation invocation,
+            IInvocationProceedInfo proceedInfo, CachedAttribute cacheAttribute)
         {
-            var cacheAttribute = FindAttribute(invocation);
-            var proceedInfo = invocation.CaptureProceedInfo();
-
-            if (cacheAttribute == null)
+            //eğer o metot cache işlemlerinin yapılması gereken bir metot ise ilk olarak dynamic olarak aşağıdaki gibi bir cacheKey oluşturuyoruz
+            var cacheKey = _cachingKeyBuilder.BuildCacheKey(invocation, null);
+            CacheInterceptorsRegistrar.Log($"{cacheKey}\nStarted intercepting ASYNC: ");
+            var result = _cacheProvider.GetOrAddAsync(cacheKey, async () =>
             {
-                proceedInfo.Invoke();
-                var task = (Task) invocation.ReturnValue;
-                await task.ConfigureAwait(false);
-                return;
-            }
-
-            throw new NotImplementedException("Task dönen (Task<T> değil!) metotlarda neyi cache'leyicem :/ bu attribute kullanılamaz.");
-        }
-
-        protected override async Task<TResult> InternalInterceptAsynchronous<TResult>(IInvocation invocation)
-        {
-            var proceedInfo = invocation.CaptureProceedInfo();
-            var cacheAttribute = FindAttribute(invocation);
-
-            if (cacheAttribute == null)
-            {
+                CacheInterceptorsRegistrar.Log($"{cacheKey}\nFetching data to cache ASYNC");
                 proceedInfo.Invoke();
                 var taskResult = (Task<TResult>) invocation.ReturnValue;
-                return await taskResult.ConfigureAwait(false);
-            }
-
-            {
-                //eğer o metot cache işlemlerinin yapılması gereken bir metot ise ilk olarak dynamic olarak aşağıdaki gibi bir cacheKey oluşturuyoruz
-                var cacheKey = _cachingKeyBuilder.BuildCacheKey(invocation, null);
-                DebugLog($"{cacheKey}\nStarted intercepting ASYNC: ");
-                var result = await _cacheProvider.GetOrAddAsync(cacheKey, async () =>
-                {
-                    DebugLog($"{cacheKey}\nFetching data to cache ASYNC");
-                    proceedInfo.Invoke();
-                    var taskResult = (Task<TResult>) invocation.ReturnValue;
-                    var methodResult = await taskResult.ConfigureAwait(false);
-                    DebugLog($"{cacheKey}\nFetched data to cache ASYNC");
-                    return methodResult;
-                }, cacheAttribute.GetExpires());
-                DebugLog($"{cacheKey}\nReturning cached data ASYNC");
-                return result;
-            }
-        }
-
-        private void DebugLog(string message)
-        {
-            if (CacheInterceptorsRegistrar.IsLoggingEnabled)
-                Debug.WriteLine("[CacheInterceptor] " + message);
+                var methodResult = await taskResult;
+                CacheInterceptorsRegistrar.Log($"{cacheKey}\nFetched data to cache ASYNC");
+                return methodResult;
+            }, cacheAttribute.GetExpires());
+            CacheInterceptorsRegistrar.Log($"{cacheKey}\nReturning cached data ASYNC");
+            return result;
         }
     }
 }

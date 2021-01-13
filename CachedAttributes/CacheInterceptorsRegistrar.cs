@@ -14,7 +14,8 @@ namespace CachedAttributes
     public static class CacheInterceptorsRegistrar
     {
         private static string _projectNamespaceRoot;
-        internal static bool IsLoggingEnabled;
+
+        internal static Action<string> Log = message => { Debug.WriteLine("[CacheInterceptor] " + message); };
 
         /// <summary>
         /// Register caching interceptors and all required services
@@ -24,9 +25,15 @@ namespace CachedAttributes
         public static void RegisterCacheInterceptors(this IWindsorContainer container, string projectNamespaceRoot, bool isLoggingEnabled)
         {
             _projectNamespaceRoot = projectNamespaceRoot;
-            IsLoggingEnabled = isLoggingEnabled;
+            if (!isLoggingEnabled)
+                Log = message =>
+                {
+                    
+                };
             container.Register(Component.For<CacheInterceptor>().LifestyleTransient());
-            container.Register(Component.For<CacheInvalidateInterceptor>().LifestyleTransient());
+            container.Register(Component.For<ICacheInvalidatorForInterceptors>()
+                .ImplementedBy<CacheInvalidateInterceptor>()
+                .LifestyleTransient());
             container.Register(Component.For<CachePerRequestInterceptor>().LifestyleTransient());
             container.Register(Component.For<ICachingKeyBuilder>().ImplementedBy<CachingKeyBuilder>().LifestyleTransient());
             container.Register(Component.For(typeof(AbpAsyncDeterminationInterceptor<>)).LifestyleTransient());
@@ -59,13 +66,6 @@ namespace CachedAttributes
                 Debug.WriteLine("[Intercepting Cache] " + implementation.Name);
                 handler.ComponentModel.Interceptors
                     .Add(new InterceptorReference(typeof(AbpAsyncDeterminationInterceptor<CacheInterceptor>)));
-            }
-            
-            if (ShouldIntercept<CachedInvalidateAttribute>(handler.ComponentModel))
-            {
-                Debug.WriteLine("[Intercepting CachedInvalidate] " + implementation.Name);
-                handler.ComponentModel.Interceptors
-                    .Add(new InterceptorReference(typeof(AbpAsyncDeterminationInterceptor<CacheInvalidateInterceptor>)));
             }
         }
 

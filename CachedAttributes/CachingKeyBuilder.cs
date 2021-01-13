@@ -55,7 +55,8 @@ namespace CachedAttributes
 
         public string BuildCacheKey(IInvocation invocation, string methodName)
         {
-            methodName = methodName ?? invocation.Method.ToString();
+            methodName = methodName ??
+                         $"{invocation.Method.DeclaringType?.Name}.{invocation.Method.Name}";
             var arguments = JsonConvert.SerializeObject(invocation.Arguments, Formatting.None, new JsonSerializerSettings
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore
