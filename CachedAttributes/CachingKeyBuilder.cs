@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Linq;
 using Castle.DynamicProxy;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -44,7 +45,7 @@ namespace CachedAttributes
                 return key;
             }
 
-            var methodName = invocation.Method.ToString();
+            var methodName = BuildFromInvocation(invocation);
 
             var arguments = JsonConvert.SerializeObject(invocation.Arguments);
             var argsString = string.Join(",", arguments);
@@ -55,8 +56,7 @@ namespace CachedAttributes
 
         public string BuildCacheKey(IInvocation invocation, string methodName)
         {
-            methodName = methodName ??
-                         $"{invocation.Method.DeclaringType?.Name}.{invocation.Method.Name}";
+            methodName = methodName ?? BuildFromInvocation(invocation);
             var arguments = JsonConvert.SerializeObject(invocation.Arguments, Formatting.None, new JsonSerializerSettings
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore
@@ -64,6 +64,23 @@ namespace CachedAttributes
             var argsString = string.Join(",", arguments);
             var cacheKey = $"{methodName}:\n{argsString}";
             return cacheKey;
+        }
+
+        private string BuildFromInvocation(IInvocation invocation)
+        {
+            var type = invocation.Method.DeclaringType;
+            string result;
+            var methodName = invocation.Method.Name;
+            var typeName = (type?.Name ?? "").Split("`")[0];
+            if (type?.IsGenericType == true)
+            {
+                var genericTypes = type.GenericTypeArguments.Select(x => x.Name);
+                result = $"{typeName}<{string.Join(",", genericTypes)}>.{methodName}";
+                return result;
+            }
+
+            result = $"{typeName}.{methodName}";
+            return result;
         }
     }
 }
