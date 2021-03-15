@@ -9,7 +9,7 @@
         <PackageProjectUrl>https://github.com/oguzhankahyaoglu/CacheInterceptorsNetCore</PackageProjectUrl>
         <RepositoryUrl>https://github.com/oguzhankahyaoglu/CacheInterceptorsNetCore</RepositoryUrl>
         <PackageTags>.netcore cached attributes interceptor castle</PackageTags>
-        <PackageVersion>5.0.6</PackageVersion>
+        <PackageVersion>5.1.0</PackageVersion>
     </PropertyGroup>
     <ItemGroup>
         <PackageReference Include="Castle.Core" Version="4.4.1" />

@@ -26,7 +26,7 @@ namespace CachedAttributes.Interceptors
             var key = keys.FirstOrDefault(x => x.StartsWith(cacheKey));
             if (key == null)
             {
-                CacheInterceptorsRegistrar.Log("Cannot find key in cache:" + key);
+                CachedAttributesOptions.Log("Cannot find key in cache:" + key);
                 return;
             }
 

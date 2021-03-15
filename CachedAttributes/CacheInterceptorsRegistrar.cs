@@ -13,23 +13,14 @@ namespace CachedAttributes
 {
     public static class CacheInterceptorsRegistrar
     {
-        private static string _projectNamespaceRoot;
-
-        internal static Action<string> Log = message => { Debug.WriteLine("[CacheInterceptor] " + message); };
-
         /// <summary>
         /// Register caching interceptors and all required services
         /// </summary>
         /// <param name="container"></param>
         /// <param name="projectNamespaceRoot"></param>
-        public static void RegisterCacheInterceptors(this IWindsorContainer container, string projectNamespaceRoot, bool isLoggingEnabled)
+        public static void RegisterCacheInterceptors(this IWindsorContainer container, CachedAttributesOptions options)
         {
-            _projectNamespaceRoot = projectNamespaceRoot;
-            if (!isLoggingEnabled)
-                Log = message =>
-                {
-                    
-                };
+            CachedAttributesOptions.Instance = options;
             container.Register(Component.For<CacheInterceptor>().LifestyleTransient());
             container.Register(Component.For<ICacheInvalidatorForInterceptors>()
                 .ImplementedBy<CacheInvalidateInterceptor>()
@@ -44,12 +35,12 @@ namespace CachedAttributes
 
         private static void Kernel_ComponentRegistered(string key, IHandler handler)
         {
-            if (_projectNamespaceRoot == null)
+            if (CachedAttributesOptions.Instance.ProjectNamespaceRoot == null)
                 throw new Exception(
                     "container.RegisterCacheInterceptors not called or projectNamespaceRoot is not given. projectNamespaceRoot is required to achieve filtering of project assemblies for registering interceptors");
 
             var implementation = handler.ComponentModel.Implementation;
-            if (implementation.Namespace?.StartsWith(_projectNamespaceRoot) != true)
+            if (implementation.Namespace?.StartsWith(CachedAttributesOptions.Instance.ProjectNamespaceRoot) != true)
             {
                 return;
             }

@@ -24,15 +24,15 @@ namespace CachedAttributes.Interceptors
         {
             //eğer o metot cache işlemlerinin yapılması gereken bir metot ise ilk olarak dynamic olarak aşağıdaki gibi bir cacheKey oluşturuyoruz
             var cacheKey = _cachingKeyBuilder.BuildCacheKey(invocation, null);
-            CacheInterceptorsRegistrar.Log($"{cacheKey}\nStarted intercepting SYNC: ");
+            CachedAttributesOptions.Log($"{cacheKey}\nStarted intercepting SYNC: ");
             var result = _cacheProvider.GetOrAdd(cacheKey, () =>
             {
-                CacheInterceptorsRegistrar.Log($"{cacheKey}\nFetching data to cache SYNC");
+                CachedAttributesOptions.Log($"{cacheKey}\nFetching data to cache SYNC");
                 invocation.Proceed();
-                CacheInterceptorsRegistrar.Log($"{cacheKey}\nFetched data to cache SYNC");
+                CachedAttributesOptions.Log($"{cacheKey}\nFetched data to cache SYNC");
                 return invocation.ReturnValue;
             }, cachedAttribute.GetExpires());
-            CacheInterceptorsRegistrar.Log($"{cacheKey}\nReturning cached data SYNC");
+            CachedAttributesOptions.Log($"{cacheKey}\nReturning cached data SYNC");
             return result;
         }
         
@@ -41,17 +41,18 @@ namespace CachedAttributes.Interceptors
         {
             //eğer o metot cache işlemlerinin yapılması gereken bir metot ise ilk olarak dynamic olarak aşağıdaki gibi bir cacheKey oluşturuyoruz
             var cacheKey = _cachingKeyBuilder.BuildCacheKey(invocation, null);
-            CacheInterceptorsRegistrar.Log($"{cacheKey}\nStarted intercepting ASYNC: ");
+            CachedAttributesOptions.Log($"{cacheKey}\nStarted intercepting ASYNC: ");
             var result = _cacheProvider.GetOrAddAsync(cacheKey, async () =>
             {
-                CacheInterceptorsRegistrar.Log($"{cacheKey}\nFetching data to cache ASYNC");
+                CachedAttributesOptions.Log($"{cacheKey}\nFetching data to cache ASYNC");
                 proceedInfo.Invoke();
                 var taskResult = (Task<TResult>) invocation.ReturnValue;
-                var methodResult = await taskResult;
-                CacheInterceptorsRegistrar.Log($"{cacheKey}\nFetched data to cache ASYNC");
+                var timeoutTask = taskResult.TimeoutAfter();
+                var methodResult = await timeoutTask;
+                CachedAttributesOptions.Log($"{cacheKey}\nFetched data to cache ASYNC");
                 return methodResult;
             }, cacheAttribute.GetExpires());
-            CacheInterceptorsRegistrar.Log($"{cacheKey}\nReturning cached data ASYNC");
+            CachedAttributesOptions.Log($"{cacheKey}\nReturning cached data ASYNC");
             return result;
         }
     }
